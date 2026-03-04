@@ -187,21 +187,46 @@ static bool provider_is_openai(void)
     return strcmp(s_provider, "openai") == 0;
 }
 
+static bool provider_is_qwen(void)
+{
+    return strcmp(s_provider, "qwen") == 0;
+}
+
+static bool provider_is_anthropic(void)
+{
+    return strcmp(s_provider, "anthropic") == 0;
+}
+
 static const char *llm_api_url(void)
 {
-    return provider_is_openai() ? MIMI_OPENAI_API_URL : MIMI_LLM_API_URL;
+    if (strcmp(s_provider, "openai") == 0) {
+        return MIMI_OPENAI_API_URL;
+    } else if (strcmp(s_provider, "qwen") == 0) {
+        return MIMI_QWEN_API_URL;
+    } else {
+        return MIMI_ANTHROPIC_API_URL;
+    }
 }
 
 static const char *llm_api_host(void)
 {
-    return provider_is_openai() ? "api.openai.com" : "api.anthropic.com";
+    if (strcmp(s_provider, "openai") == 0) {
+        return "api.openai.com";
+    } else if (strcmp(s_provider, "qwen") == 0) {
+        return "dashscope.aliyuncs.com";
+    } else {
+        return "api.anthropic.com";
+    }
 }
 
 static const char *llm_api_path(void)
 {
-    return provider_is_openai() ? "/v1/chat/completions" : "/v1/messages";
+    if (strcmp(s_provider, "openai") == 0 || strcmp(s_provider, "qwen") == 0) {
+        return "/v1/chat/completions";
+    } else {
+        return "/v1/messages";
+    }
 }
-
 /* ── Init ─────────────────────────────────────────────────────── */
 
 esp_err_t llm_proxy_init(void)
@@ -265,16 +290,22 @@ static esp_err_t llm_http_direct(const char *post_data, resp_buf_t *rb, int *out
 
     esp_http_client_set_method(client, HTTP_METHOD_POST);
     esp_http_client_set_header(client, "Content-Type", "application/json");
-    if (provider_is_openai()) {
+if (provider_is_openai()) {
+if (s_api_key[0]) {
+char auth[LLM_API_KEY_MAX_LEN + 16];
+snprintf(auth, sizeof(auth), "Bearer %s", s_api_key);
+esp_http_client_set_header(client, "Authorization", auth);
+        }
+    } else if (provider_is_qwen()) {
         if (s_api_key[0]) {
             char auth[LLM_API_KEY_MAX_LEN + 16];
             snprintf(auth, sizeof(auth), "Bearer %s", s_api_key);
             esp_http_client_set_header(client, "Authorization", auth);
         }
-    } else {
-        esp_http_client_set_header(client, "x-api-key", s_api_key);
-        esp_http_client_set_header(client, "anthropic-version", MIMI_LLM_API_VERSION);
-    }
+    } else {  // anthropic
+esp_http_client_set_header(client, "x-api-key", s_api_key);
+esp_http_client_set_header(client, "anthropic-version", MIMI_LLM_API_VERSION);
+}
     esp_http_client_set_post_field(client, post_data, strlen(post_data));
 
     esp_err_t err = esp_http_client_perform(client);
@@ -293,7 +324,16 @@ static esp_err_t llm_http_via_proxy(const char *post_data, resp_buf_t *rb, int *
     int body_len = strlen(post_data);
     char header[1024];
     int hlen = 0;
-    if (provider_is_openai()) {
+if (provider_is_openai()) {
+hlen = snprintf(header, sizeof(header),
+"POST %s HTTP/1.1\r\n"
+"Host: %s\r\n"
+"Content-Type: application/json\r\n"
+"Authorization: Bearer %s\r\n"
+"Content-Length: %d\r\n"
+"Connection: close\r\n\r\n",
+            llm_api_path(), llm_api_host(), s_api_key, body_len);
+    } else if (provider_is_qwen()) {
         hlen = snprintf(header, sizeof(header),
             "POST %s HTTP/1.1\r\n"
             "Host: %s\r\n"
@@ -302,17 +342,17 @@ static esp_err_t llm_http_via_proxy(const char *post_data, resp_buf_t *rb, int *
             "Content-Length: %d\r\n"
             "Connection: close\r\n\r\n",
             llm_api_path(), llm_api_host(), s_api_key, body_len);
-    } else {
-        hlen = snprintf(header, sizeof(header),
-            "POST %s HTTP/1.1\r\n"
-            "Host: %s\r\n"
-            "Content-Type: application/json\r\n"
-            "x-api-key: %s\r\n"
-            "anthropic-version: %s\r\n"
-            "Content-Length: %d\r\n"
-            "Connection: close\r\n\r\n",
-            llm_api_path(), llm_api_host(), s_api_key, MIMI_LLM_API_VERSION, body_len);
-    }
+    } else {  // anthropic
+hlen = snprintf(header, sizeof(header),
+"POST %s HTTP/1.1\r\n"
+"Host: %s\r\n"
+"Content-Type: application/json\r\n"
+"x-api-key: %s\r\n"
+"anthropic-version: %s\r\n"
+"Content-Length: %d\r\n"
+"Connection: close\r\n\r\n",
+llm_api_path(), llm_api_host(), s_api_key, MIMI_LLM_API_VERSION, body_len);
+}
 
     if (proxy_conn_write(conn, header, hlen) < 0 ||
         proxy_conn_write(conn, post_data, body_len) < 0) {
@@ -559,24 +599,51 @@ esp_err_t llm_chat_tools(const char *system_prompt,
     /* Build request body (non-streaming) */
     cJSON *body = cJSON_CreateObject();
     cJSON_AddStringToObject(body, "model", s_model);
-    if (provider_is_openai()) {
+    
+    if (provider_is_openai() || provider_is_qwen()) {
         cJSON_AddNumberToObject(body, "max_completion_tokens", MIMI_LLM_MAX_TOKENS);
-    } else {
+    } else {  // anthropic
         cJSON_AddNumberToObject(body, "max_tokens", MIMI_LLM_MAX_TOKENS);
     }
 
-    if (provider_is_openai()) {
-        cJSON *openai_msgs = convert_messages_openai(system_prompt, messages);
-        cJSON_AddItemToObject(body, "messages", openai_msgs);
+    if (provider_is_openai() || provider_is_qwen()) {
+        // Both OpenAI and Qwen use similar formats
+        cJSON *messages_array = cJSON_CreateArray();
+        
+        // Handle system prompt
+        if (system_prompt && system_prompt[0]) {
+            cJSON *system_msg = cJSON_CreateObject();
+            cJSON_AddStringToObject(system_msg, "role", "system");
+            cJSON_AddStringToObject(system_msg, "content", system_prompt);
+            cJSON_AddItemToArray(messages_array, system_msg);
+        }
+        
+        // Add conversation messages
+        cJSON *converted_msgs;
+        if (provider_is_openai()) {
+            converted_msgs = convert_messages_openai(system_prompt, messages);
+        } else { // qwen
+            // Qwen API is OpenAI-compatible, so can use the same converter for now, 
+            // but in future may need different handling
+            converted_msgs = convert_messages_openai(system_prompt, messages);
+        }
+        cJSON_AddItemToArray(messages_array, converted_msgs);
+        
+        cJSON_AddItemToObject(body, "messages", messages_array);
 
         if (tools_json) {
-            cJSON *tools = convert_tools_openai(tools_json);
+            cJSON *tools;
+            if (provider_is_openai()) {
+                tools = convert_tools_openai(tools_json);
+            } else { // qwen
+                tools = convert_tools_openai(tools_json); // Similar format to OpenAI
+            }
             if (tools) {
                 cJSON_AddItemToObject(body, "tools", tools);
                 cJSON_AddStringToObject(body, "tool_choice", "auto");
             }
         }
-    } else {
+    } else {  // anthropic
         cJSON_AddStringToObject(body, "system", system_prompt);
 
         /* Deep-copy messages so caller keeps ownership */
@@ -635,7 +702,7 @@ esp_err_t llm_chat_tools(const char *system_prompt,
         return ESP_FAIL;
     }
 
-    if (provider_is_openai()) {
+    if (provider_is_openai() || provider_is_qwen()) {
         cJSON *choices = cJSON_GetObjectItem(root, "choices");
         cJSON *choice0 = choices && cJSON_IsArray(choices) ? cJSON_GetArrayItem(choices, 0) : NULL;
         if (choice0) {
@@ -688,6 +755,8 @@ esp_err_t llm_chat_tools(const char *system_prompt,
                 }
             }
         }
+    } else {  // anthropic
+
     } else {
         /* stop_reason */
         cJSON *stop_reason = cJSON_GetObjectItem(root, "stop_reason");

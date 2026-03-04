@@ -31,7 +31,7 @@ MimiClaw turns a tiny ESP32-S3 board into a personal AI assistant. Plug it into 
 
 ![](assets/mimiclaw.png)
 
-You send a message on Telegram. The ESP32-S3 picks it up over WiFi, feeds it into an agent loop — the LLM thinks, calls tools, reads memory — and sends the reply back. Supports both **Anthropic (Claude)** and **OpenAI (GPT)** as providers, switchable at runtime. Everything runs on a single $5 chip with all your data stored locally on flash.
+You send a message on Telegram. The ESP32-S3 picks it up over WiFi, feeds it into an agent loop — the LLM thinks, calls tools, reads memory — and sends the reply back. Supports **Anthropic (Claude)**, **OpenAI (GPT)**, and **Alibaba Cloud Qwen (通義千問)** as providers, switchable at runtime. Everything runs on a single $5 chip with all your data stored locally on flash.
 
 ## Quick Start
 
@@ -40,7 +40,7 @@ You send a message on Telegram. The ESP32-S3 picks it up over WiFi, feeds it int
 - An **ESP32-S3 dev board** with 16 MB flash and 8 MB PSRAM (e.g. Xiaozhi AI board, ~$10)
 - A **USB Type-C cable**
 - A **Telegram bot token** — talk to [@BotFather](https://t.me/BotFather) on Telegram to create one
-- An **Anthropic API key** — from [console.anthropic.com](https://console.anthropic.com), or an **OpenAI API key** — from [platform.openai.com](https://platform.openai.com)
+- An **Anthropic API key** — from [console.anthropic.com](https://console.anthropic.com), or an **OpenAI API key** — from [platform.openai.com](https://platform.openai.com), or an **Alibaba Cloud Qwen API key** — from [DashScope Console](https://dashscope.console.aliyun.com/)
 
 ### Install
 
