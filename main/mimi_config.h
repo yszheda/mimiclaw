@@ -38,6 +38,11 @@
 #define MIMI_SECRET_SEARCH_KEY      ""
 #endif
 
+/* FEISHU Secrets */
+#define MIMI_SECRET_FEISHU_APP_ID       ""
+#define MIMI_SECRET_FEISHU_APP_SECRET   ""
+#define MIMI_SECRET_FEISHU_BOT_TOKEN    ""
+
 /* WiFi */
 #define MIMI_WIFI_MAX_RETRY          10
 #define MIMI_WIFI_RETRY_BASE_MS      1000
@@ -46,6 +51,7 @@
 /* Telegram Bot */
 #define MIMI_TG_POLL_TIMEOUT_S       30
 #define MIMI_TG_MAX_MSG_LEN          4096
+#define MIMI_FEISHU_MAX_MSG_LEN      4000
 #define MIMI_TG_POLL_STACK           (12 * 1024)
 #define MIMI_TG_POLL_PRIO            5
 #define MIMI_TG_POLL_CORE            0
@@ -64,6 +70,17 @@
 /* Timezone (POSIX TZ format) */
 #define MIMI_TIMEZONE                "PST8PDT,M3.2.0,M11.1.0"
 
+/* CHANNEL NAMES */
+#define MIMI_CHAN_TELEGRAM   "telegram"
+#define MIMI_CHAN_FEISHU     "feishu"
+#define MIMI_CHAN_WEBSOCKET  "websocket"
+#define MIMI_CHAN_CLI        "cli"
+#define MIMI_CHAN_SYSTEM     "system"
+
+/* CHANNEL MANAGEMENT */
+#define MIMI_MAX_CHANNELS          8
+#define MIMI_MAX_CHANNELS          8
+
 /* LLM */
 #define MIMI_LLM_DEFAULT_MODEL       "qwen-max"
 #define MIMI_LLM_PROVIDER_DEFAULT    "qwen"
@@ -73,32 +90,6 @@
 #define MIMI_ANTHROPIC_API_URL         "https://api.anthropic.com/v1/messages"
 #define MIMI_QWEN_API_URL              "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
 #define MIMI_LLM_API_VERSION         "2023-06-01"
-#define MIMI_LLM_DEFAULT_MODEL       "qwen-max"
-#define MIMI_LLM_PROVIDER_DEFAULT    "qwen"
-#define MIMI_LLM_MAX_TOKENS          4096
-#define MIMI_LLM_API_URL             "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
-#define MIMI_OPENAI_API_URL          "https://api.openai.com/v1/chat/completions"
-#define MIMI_ANTHROPIC_API_URL         "https://api.anthropic.com/v1/messages"
-#define MIMI_QWEN_API_URL              "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
-#define MIMI_LLM_API_VERSION         "2023-06-01"
-#define MIMI_LLM_DEFAULT_MODEL       "qwen-max"
-#define MIMI_LLM_PROVIDER_DEFAULT    "qwen"
-#define MIMI_LLM_MAX_TOKENS          4096
-#define MIMI_LLM_API_URL             "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
-#define MIMI_OPENAI_API_URL          "https://api.openai.com/v1/chat/completions"
-#define MIMI_ANTHROPIC_API_URL         "https://api.anthropic.com/v1/messages"
-#define MIMI_QWEN_API_URL              "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
-#define MIMI_LLM_API_VERSION         "2023-06-01"
-/* LLM */
-#define MIMI_LLM_DEFAULT_MODEL       "qwen-max"
-#define MIMI_LLM_PROVIDER_DEFAULT    "qwen"
-#define MIMI_LLM_PROVIDER_DEFAULT    "anthropic"
-#define MIMI_LLM_MAX_TOKENS          4096
-#define MIMI_LLM_API_URL             "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
-#define MIMI_OPENAI_API_URL          "https://api.openai.com/v1/chat/completions"
-#define MIMI_LLM_API_VERSION         "2023-06-01"
-#define MIMI_ANTHROPIC_API_URL         "https://api.anthropic.com/v1/messages"
-#define MIMI_QWEN_API_URL              "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
 #define MIMI_LLM_STREAM_BUF_SIZE     (32 * 1024)
 #define MIMI_LLM_LOG_VERBOSE_PAYLOAD 0
 #define MIMI_LLM_LOG_PREVIEW_BYTES   160
@@ -145,6 +136,7 @@
 #define MIMI_NVS_LLM                 "llm_config"
 #define MIMI_NVS_PROXY               "proxy_config"
 #define MIMI_NVS_SEARCH              "search_config"
+#define MIMI_NVS_FEISHU              "feishu_config"
 
 /* NVS Keys */
 #define MIMI_NVS_KEY_SSID            "ssid"

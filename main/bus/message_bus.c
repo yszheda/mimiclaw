@@ -1,6 +1,8 @@
 #include "message_bus.h"
 #include "mimi_config.h"
 #include "esp_log.h"
+#include "channels/channel_manager.h"
+#include "channels/feishu/feishu_bot.h"
 #include <string.h>
 
 static const char *TAG = "bus";

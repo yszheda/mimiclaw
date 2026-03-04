@@ -31,7 +31,7 @@ MimiClaw turns a tiny ESP32-S3 board into a personal AI assistant. Plug it into 
 
 ![](assets/mimiclaw.png)
 
-You send a message on Telegram. The ESP32-S3 picks it up over WiFi, feeds it into an agent loop — the LLM thinks, calls tools, reads memory — and sends the reply back. Supports **Anthropic (Claude)**, **OpenAI (GPT)**, and **Alibaba Cloud Qwen (通義千問)** as providers, switchable at runtime. Everything runs on a single $5 chip with all your data stored locally on flash.
+You send a message on Telegram/Feishu. The ESP32-S3 picks it up over WiFi, feeds it into an agent loop — the LLM thinks, calls tools, reads memory — and sends the reply back. Supports **Anthropic (Claude)**, **OpenAI (GPT)**, and **Alibaba Cloud Qwen (通義千問)** as providers, switchable at runtime. The system supports multiple messaging platforms (Telegram, Feishu), allowing you to interact via different channels. Everything runs on a single $5 chip with all your data stored locally on flash.
 
 ## Quick Start
 

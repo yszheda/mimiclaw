@@ -5,6 +5,8 @@
 #include "llm/llm_proxy.h"
 #include "memory/memory_store.h"
 #include "memory/session_mgr.h"
+#include "gateway/ws_server.h"
+#include "channels/feishu/feishu_bot.h"
 #include "proxy/http_proxy.h"
 #include "tools/tool_registry.h"
 #include "tools/tool_web_search.h"
@@ -140,6 +142,42 @@ static int cmd_memory_read(int argc, char **argv)
         printf("MEMORY.md is empty or not found.\n");
     }
     free(buf);
+    return 0;
+}
+
+/* --- set_feishu_app_id command --- */
+static struct {
+    struct arg_str *app_id;
+    struct arg_end *end;
+} feishu_app_id_args;
+
+static int cmd_set_feishu_app_id(int argc, char **argv)
+{
+    int nerrors = arg_parse(argc, argv, (void **)&feishu_app_id_args);
+    if (nerrors != 0) {
+        arg_print_errors(stderr, feishu_app_id_args.end, argv[0]);
+        return 1;
+    }
+    feishu_set_app_id(feishu_app_id_args.app_id->sval[0]);
+    printf("Feishu App ID saved.\n");
+    return 0;
+}
+
+/* --- set_feishu_app_secret command --- */
+static struct {
+    struct arg_str *app_secret;
+    struct arg_end *end;
+} feishu_app_secret_args;
+
+static int cmd_set_feishu_app_secret(int argc, char **argv)
+{
+    int nerrors = arg_parse(argc, argv, (void **)&feishu_app_secret_args);
+    if (nerrors != 0) {
+        arg_print_errors(stderr, feishu_app_secret_args.end, argv[0]);
+        return 1;
+    }
+    feishu_set_app_secret(feishu_app_secret_args.app_secret->sval[0]);
+    printf("Feishu App Secret saved.\n");
     return 0;
 }
 
@@ -738,6 +776,30 @@ esp_err_t serial_cli_init(void)
         .argtable = &search_key_args,
     };
     esp_console_cmd_register(&search_key_cmd);
+
+    /* set_feishu_app_id */
+    feishu_app_id_args.app_id = arg_str1(NULL, NULL, "<app_id>", "Feishu App ID");
+    feishu_app_id_args.end = arg_end(1);
+    esp_console_cmd_t feishu_app_id_cmd = {
+        .command = "set_feishu_app_id",
+        .help = "Set Feishu App ID",
+        .func = &cmd_set_feishu_app_id,
+        .argtable = &feishu_app_id_args,
+    };
+    esp_console_cmd_register(&feishu_app_id_cmd);
+
+    /* set_feishu_app_secret */
+    feishu_app_secret_args.app_secret = arg_str1(NULL, NULL, "<app_secret>", "Feishu App Secret");
+    feishu_app_secret_args.end = arg_end(1);
+    esp_console_cmd_t feishu_app_secret_cmd = {
+        .command = "set_feishu_app_secret",
+        .help = "Set Feishu App Secret",
+        .func = &cmd_set_feishu_app_secret,
+        .argtable = &feishu_app_secret_args,
+    };
+    esp_console_cmd_register(&feishu_app_secret_cmd);
+
+    /* set_proxy */
 
     /* set_proxy */
     proxy_args.host = arg_str1(NULL, NULL, "<host>", "Proxy host/IP");
